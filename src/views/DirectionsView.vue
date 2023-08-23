@@ -16,17 +16,17 @@
         <div class="mb-2 mt-5">
           <AutoCompleteInput
             theId="firstInput"
-            v-model:input="pickup"
             placeholder="Enter the pick-up location"
             @isActive="isPickupActive = true"
+            v-model="pickup"
           />
         </div>
         <div class="mb-3">
           <AutoCompleteInput
             theId="SecondInput"
-            v-model:input="destination"
             placeholderEner="Where to ?"
             @isActive="isPickupActive = false"
+            v-model="des"
           />
         </div>
       </div>
@@ -40,18 +40,39 @@
         <div class="text-lg text-gray-400">Uk</div>
       </div>
     </div>
+      {{ addressData }}
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref, watch } from "vue";
+import { debounce } from "lodash";
 import AutoCompleteInput from "../components/AutoCompleteInput.vue";
 import MapMakerIcon from "vue-material-design-icons/MapMarker.vue";
 import ArrowIcon from "vue-material-design-icons/ArrowLeft.vue";
+import axios from "axios";
 
-let isPickupActive = ref(true);
+let addressData = ref("");
 let pickup = ref("");
 let destination = ref("");
+let isPickupActive = ref("");
+
+onMounted(() => {
+  document.getElementById("firstInput").focus();
+});
+
+const findAddress = debounce(async (address) => {
+  try {
+    let res = await axios.get("address/" + address);
+    addressData.value = res.data;
+    console.log("event")
+  } catch (err) {
+    console.log(err);
+  }
+}, 300);
+
+watch(pickup, async (pickup) => await findAddress(pickup));
+watch(destination, async (destination) => findAddress(destination));
 </script>
 
 <style lang="scss" scoped>
